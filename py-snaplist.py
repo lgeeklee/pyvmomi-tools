@@ -13,6 +13,10 @@ import pytz
 import getpass
 
 
+# Alter this to change the number of days for aged snapshots to display a warning in the output
+warning_age = 7
+
+
 def GetArgs():
     """
     Supports the command-line arguments listed below.
@@ -30,6 +34,14 @@ def GetArgs():
 
 def get_properties(content, viewType, props, specType):
     # Build a view and get basic properties for all Virtual Machines
+    """
+    Obtains a list of specific properties for a particular Managed Object Reference data object.
+
+    :param content: ServiceInstance Managed Object
+    :param viewType: Type of Managed Object Reference that should populate the View
+    :param props: A list of properties that should be retrieved for the entity
+    :param specType: Type of Managed Object Reference that should be used for the Property Specification
+    """
     objView = content.viewManager.CreateContainerView(content.rootFolder, viewType, True)
     tSpec = vim.PropertyCollector.TraversalSpec(name='tSpecName', path='view', skip=False, type=vim.view.ContainerView)
     pSpec = vim.PropertyCollector.PropertySpec(all=False, pathSet=props, type=specType)
@@ -55,6 +67,11 @@ def get_properties(content, viewType, props, specType):
 
 
 def print_snap_info(vm_snap):
+    """
+    This function will loop through 3 levels of snapshots and print out the name, description and
+    age in a tree-type view
+    :param vm_snap: The snapshot property and all values
+    """
     current_snap = vm_snap.currentSnapshot
     print(vm_snap.rootSnapshotList[0].name + ' : ' + vm_snap.rootSnapshotList[0].description + ' : '
           + snap_age_check(vm_snap.rootSnapshotList[0])
@@ -79,14 +96,26 @@ def print_snap_info(vm_snap):
 
 
 def snap_age_check(snapshot):
+    """
+    This function checks the age of each snapshot.
+
+    :param snapshot: The current snapshot property and value in the tree
+    :return: Return WARNING text with the age or just the age.
+    """
     snap_age = datetime.utcnow().replace(tzinfo=pytz.utc) - snapshot.createTime
-    if snap_age.days > 7:
+    if snap_age.days > warning_age:
         return '!WARNING! Snapshot is ' + str(snap_age.days) + ' days old'
     else:
         return str(snap_age.days) + ' days old'
 
 
 def current_snap_check(current_snap, tree_snap):
+    """
+
+    :param current_snap: The current live snapshot state MORef of the Virtual Machine
+    :param tree_snap: The current tree snapshot state MORef of the Virtual Machine
+    :return: Return text stating where the live VM currently is in the tree or return nothing.
+    """
     if current_snap == tree_snap:
         return ' : *You are here*'
     else:
@@ -119,7 +148,7 @@ def main():
 
         for vm in retProps:
             if ('snapshot' in vm):
-                print(vm['name'])
+                print('\n' + vm['name'])
                 print_snap_info(vm['snapshot'])
 
     except vmodl.MethodFault as e:
