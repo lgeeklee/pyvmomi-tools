@@ -78,17 +78,17 @@ def print_snap_info(vm_snap):
           + current_snap_check(current_snap, vm_snap.rootSnapshotList[0].snapshot))
     if (vm_snap.rootSnapshotList[0].childSnapshotList):
         for snapshot in vm_snap.rootSnapshotList[0].childSnapshotList:
-            print('\t- ' + snapshot.name + ' : ' + snapshot.description + ' : ' + snap_age_check(snapshot)
+            print('\t|- ' + snapshot.name + ' : ' + snapshot.description + ' : ' + snap_age_check(snapshot)
                   + current_snap_check(current_snap, snapshot.snapshot))
             snap = snapshot
             if (snap.childSnapshotList):
                 for snapshot in snap.childSnapshotList:
-                    print('\t\t-- ' + snapshot.name + ' : ' + snapshot.description + ' : ' + snap_age_check(snapshot)
+                    print('\t\t|-- ' + snapshot.name + ' : ' + snapshot.description + ' : ' + snap_age_check(snapshot)
                           + current_snap_check(current_snap, snapshot.snapshot))
                     snap = snapshot
                     if (snap.childSnapshotList):
                         for snapshot in snap.childSnapshotList:
-                            print('\t\t\t--- ' + snapshot.name + ' : ' + snapshot.description + ' : '
+                            print('\t\t\t|--- ' + snapshot.name + ' : ' + snapshot.description + ' : '
                                   + snap_age_check(snapshot) + current_snap_check(current_snap, snapshot.snapshot))
                             snap = snapshot
                             if (snap.childSnapshotList):
