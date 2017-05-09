@@ -27,6 +27,9 @@ def GetArgs():
     parser.add_argument('-u', '--user', required=True, action='store', help='User name to use when connecting to host')
     parser.add_argument('-p', '--password', required=False, action='store',
                         help='Password to use when connecting to host')
+    parser.add_argument('--insecure', required=False, action="store_true", 
+                        default=False,
+                        help='Ignore ssl certificate')
     args = parser.parse_args()
     return args
 
@@ -121,9 +124,18 @@ def current_snap_check(current_snap, tree_snap):
     else:
         return ''
 
+import ssl
 
 def main():
+
     args = GetArgs()
+
+    context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
+    if(args.insecure):
+        context.verify_mode = ssl.CERT_NONE
+    else:
+        context.verify_mode = ssl.CERT_REQUIRED
+
     try:
         si = None
         if args.password:
@@ -134,7 +146,8 @@ def main():
             si = SmartConnect(host=args.host,
                               user=args.user,
                               pwd=password,
-                              port=int(args.port))
+                              port=int(args.port),
+                              sslContext=context)
         except IOError, e:
             pass
         if not si:
